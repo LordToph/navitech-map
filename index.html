@@ -27,6 +27,14 @@
       center: [-46.6333, -23.5505], // São Paulo
       zoom: 14
     });
+
+function updateLocation(lat, lng) {
+    map.flyTo({
+      center: [lng, lat],
+      zoom: 15,
+      speed: 0.8
+    });
+  }
   </script>
 </body>
 </html>
