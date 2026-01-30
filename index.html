@@ -95,14 +95,46 @@
     }
   });
 
+let drawingZone = [];
+let tempZoneLayerId = 'temp-zone';
+
 map.on('click', (e) => {
-  const lngLat = e.lngLat;
+  const lngLat = [e.lngLat.lng, e.lngLat.lat];
+
+  drawingZone.push(lngLat);
 
   new mapboxgl.Marker({ color: '#ff0000' })
     .setLngLat(lngLat)
     .addTo(map);
 
-  console.log('Zona marcada em:', lngLat.lng, lngLat.lat);
+  if (drawingZone.length >= 3) {
+
+    if (map.getLayer(tempZoneLayerId)) {
+      map.removeLayer(tempZoneLayerId);
+      map.removeSource(tempZoneLayerId);
+    }
+
+    map.addSource(tempZoneLayerId, {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[...drawingZone, drawingZone[0]]]
+        }
+      }
+    });
+
+    map.addLayer({
+      id: tempZoneLayerId,
+      type: 'fill',
+      source: tempZoneLayerId,
+      paint: {
+        'fill-color': '#ff0000',
+        'fill-opacity': 0.3
+      }
+    });
+  }
 });
 
 const zoneLimits = {
