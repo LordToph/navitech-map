@@ -93,6 +93,16 @@
           'fill-color': '#ff0000',
           'fill-opacity': 0.4
         }
+
+map.on('click', (e) => {
+  const lngLat = e.lngLat;
+
+  new mapboxgl.Marker({ color: '#ff0000' })
+    .setLngLat(lngLat)
+    .addTo(map);
+
+  console.log('Zona marcada em:', lngLat.lng, lngLat.lat);
+});
       });
 
 const zoneLimits = {
