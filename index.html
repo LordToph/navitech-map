@@ -56,7 +56,7 @@
 </div>
 
   <script>
-let blockStart = null;
+let selectedRoadId = null;
 
     mapboxgl.accessToken = 'pk.eyJ1IjoibG9yZHRvcGgiLCJhIjoiY21rdmk0Zzh0MDZ4bTNjb2FlYjNucjV4NSJ9.IrJ9nEUX97lUvdPP0OHzAQ';
 
@@ -67,35 +67,43 @@ let blockStart = null;
       zoom: 14
     });
 
-   map.on('load', () => {
+map.setPaintProperty('road-simple', 'line-color', [
+  'case',
+  ['boolean', ['feature-state', 'selected'], false],
+  '#ff0000',
+  '#888888'
+]);
 
-  // Zona restrita
-  map.addSource('restricted-zone', {
-    type: 'geojson',
-    data: {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [-44.0233, -19.9795],
-          [-44.0225, -19.9795],
-          [-44.0225, -19.9789],
-          [-44.0233, -19.9789],
-          [-44.0233, -19.9795]
-        ]]
-      }
-    }
+  map.on('click', (e) => {
+
+  const features = map.queryRenderedFeatures(e.point, {
+    layers: ['road-simple'] // camada de ruas
   });
 
-  map.addLayer({
-    id: 'restricted-zone-layer',
-    type: 'fill',
-    source: 'restricted-zone',
-    paint: {
-      'fill-color': '#ff0000',
-      'fill-opacity': 0.4
-    }
-  });
+  if (!features.length) {
+    alert('Clique diretamente sobre uma rua');
+    return;
+  }
+
+  const road = features[0];
+
+  // Limpa seleção anterior
+  if (selectedRoadId) {
+    map.setFeatureState(
+      { source: road.source, id: selectedRoadId },
+      { selected: false }
+    );
+  }
+
+  selectedRoadId = road.id;
+
+  // Marca trecho selecionado
+  map.setFeatureState(
+    { source: road.source, id: selectedRoadId },
+    { selected: true }
+  );
+
+});
 
 let drawingZone = [];
 let tempZoneLayerId = 'temp-zone';
