@@ -12,11 +12,28 @@
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    #warning {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff3b3b;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  display: none;
+  z-index: 999;
+}
   </style>
 </head>
 
 <body>
   <div id="map"></div>
+  <div id="warning">
+  ⚠️ Área restrita à frente – ajuste de rota necessário
+</div>
 
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoibG9yZHRvcGgiLCJhIjoiY21rdmk0Zzh0MDZ4bTNjb2FlYjNucjV4NSJ9.IrJ9nEUX97lUvdPP0OHzAQ';
@@ -111,8 +128,12 @@ const distance = distanceBetweenPoints(
   zoneCenter.lng
 );
 
+const warning = document.getElementById('warning');
+
 if (distance < 200) {
-  alert('⚠️ Atenção! Área restrita à frente. Rota será ajustada.');
+  warning.style.display = 'block';
+} else {
+  warning.style.display = 'none';
 }
 
         vehicleMarker.setLngLat([lng, lat]);
