@@ -35,6 +35,37 @@ function updateLocation(lat, lng) {
       speed: 0.8
     });
   }
+
+// Marcador do veículo
+const vehicleMarker = new mapboxgl.Marker({
+  color: '#1E90FF'
+});
+
+// GPS contínuo
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      vehicleMarker
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+      updateLocation(lat, lng);
+    },
+    (error) => {
+      console.error('Erro ao obter localização:', error);
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 1000,
+      timeout: 10000
+    }
+  );
+} else {
+  alert('GPS não suportado neste dispositivo.');
+}
   </script>
 </body>
 </html>
