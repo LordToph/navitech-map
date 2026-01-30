@@ -24,8 +24,8 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-46.6333, -23.5505], // São Paulo
-      zoom: 14
+      center: [0, 0], //
+      zoom: 2
     });
 
 function updateLocation(lat, lng) {
@@ -84,6 +84,22 @@ const vehicleMarker = new mapboxgl.Marker({
 });
 
 // GPS contínuo
+navigator.geolocation.getCurrentPosition(
+  (position) => {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+
+    map.setCenter([lng, lat]);
+    map.setZoom(15);
+  },
+  (error) => {
+    console.error('Erro ao pegar localização inicial:', error);
+  },
+  {
+    enableHighAccuracy: true
+  }
+);
+
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
     (position) => {
