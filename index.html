@@ -66,6 +66,40 @@ if (navigator.geolocation) {
 } else {
   alert('GPS não suportado neste dispositivo.');
 }
+
+const vehicle = {
+  type: 'truck',
+  maxWeight: 24000,
+  maxHeight: 4.4,
+  maxWidth: 2.6
+};
+
+map.addSource('restricted-zone', {
+  type: 'geojson',
+  data: {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[
+        [-44.0233, -19.9795],
+        [-44.0225, -19.9795],
+        [-44.0225, -19.9789],
+        [-44.0233, -19.9789],
+        [-44.0233, -19.9795]
+      ]]
+    }
+  }
+});
+
+map.addLayer({
+  id: 'restricted-zone-layer',
+  type: 'fill',
+  source: 'restricted-zone',
+  paint: {
+    'fill-color': '#ff0000',
+    'fill-opacity': 0.4
+  }
+});
   </script>
 </body>
 </html>
