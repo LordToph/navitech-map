@@ -75,6 +75,12 @@
         }
       });
 
+const zoneLimits = {
+  maxHeight: 3.5,
+  maxWidth: 2.4,
+  maxWeight: 12000
+};
+
 function distanceBetweenPoints(lat1, lon1, lat2, lon2) {
   const R = 6371000; // raio da Terra em metros
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -127,10 +133,15 @@ const distance = distanceBetweenPoints(
   zoneCenter.lat,
   zoneCenter.lng
 );
+const canPass =
+  currentVehicle.maxHeight <= zoneLimits.maxHeight &&
+  currentVehicle.maxWidth <= zoneLimits.maxWidth &&
+  currentVehicle.maxWeight <= zoneLimits.maxWeight;
 
 const warning = document.getElementById('warning');
 
-if (distance < 200) {
+if (distance < 200 && !canPass) {
+  warning.innerText = '🚫 Seu veículo NÃO pode passar aqui';
   warning.style.display = 'block';
 } else {
   warning.style.display = 'none';
@@ -147,12 +158,30 @@ if (distance < 200) {
     });
 
     // Dados do veículo (vamos usar depois)
-    const vehicle = {
-      type: 'truck',
-      maxWeight: 24000,
-      maxHeight: 4.4,
-      maxWidth: 2.6
-    };
+    const vehicles = {
+  caminhao_3_4: {
+    name: 'Caminhão 3/4',
+    maxHeight: 3.2,
+    maxWidth: 2.3,
+    maxWeight: 8000
+  },
+  toco: {
+    name: 'Toco',
+    maxHeight: 3.8,
+    maxWidth: 2.5,
+    maxWeight: 16000
+  },
+  carreta: {
+    name: 'Carreta',
+    maxHeight: 4.4,
+    maxWidth: 2.6,
+    maxWeight: 24000
+  }
+};
+
+// veículo ativo 
+let currentVehicle = vehicles.carreta;
+
   </script>
 </body>
 </html>
