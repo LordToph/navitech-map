@@ -58,6 +58,21 @@
         }
       });
 
+function distanceBetweenPoints(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // raio da Terra em metros
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
       // Marker do veículo
       const vehicleMarker = new mapboxgl.Marker({
         color: '#1E90FF',
@@ -84,6 +99,21 @@
       navigator.geolocation.watchPosition((pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+const zoneCenter = {
+  lat: -19.9792,
+  lng: -44.0229
+};
+
+const distance = distanceBetweenPoints(
+  lat,
+  lng,
+  zoneCenter.lat,
+  zoneCenter.lng
+);
+
+if (distance < 200) {
+  alert('⚠️ Atenção! Área restrita à frente. Rota será ajustada.');
+}
 
         vehicleMarker.setLngLat([lng, lat]);
 
