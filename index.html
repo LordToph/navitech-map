@@ -26,6 +26,19 @@
   display: none;
   z-index: 999;
 }
+#vehicle-selector {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+}
+
+#vehicleSelect {
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 6px;
+}
   </style>
 </head>
 
@@ -33,6 +46,13 @@
   <div id="map"></div>
   <div id="warning">
   ⚠️ Área restrita à frente – ajuste de rota necessário
+</div>
+<div id="vehicle-selector">
+  <select id="vehicleSelect">
+    <option value="caminhao_3_4">Caminhão 3/4</option>
+    <option value="toco">Toco</option>
+    <option value="carreta" selected>Carreta</option>
+  </select>
 </div>
 
   <script>
@@ -181,6 +201,12 @@ if (distance < 200 && !canPass) {
 
 // veículo ativo 
 let currentVehicle = vehicles.caminhao_3_4;
+
+const vehicleSelect = document.getElementById('vehicleSelect');
+
+vehicleSelect.addEventListener('change', () => {
+  currentVehicle = vehicles[vehicleSelect.value];
+});
 
   </script>
 </body>
