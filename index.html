@@ -99,42 +99,46 @@ let drawingZone = [];
 let tempZoneLayerId = 'temp-zone';
 
 map.on('click', (e) => {
-  const lngLat = [e.lngLat.lng, e.lngLat.lat];
 
-  drawingZone.push(lngLat);
+  const features = map.queryRenderedFeatures(e.point, {
+    layers: ['road-simple', 'road']
+  });
 
-  new mapboxgl.Marker({ color: '#ff0000' })
-    .setLngLat(lngLat)
-    .addTo(map);
-
-  if (drawingZone.length >= 3) {
-
-    if (map.getLayer(tempZoneLayerId)) {
-      map.removeLayer(tempZoneLayerId);
-      map.removeSource(tempZoneLayerId);
-    }
-
-    map.addSource(tempZoneLayerId, {
-      type: 'geojson',
-      data: {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[...drawingZone, drawingZone[0]]]
-        }
-      }
-    });
-
-    map.addLayer({
-      id: tempZoneLayerId,
-      type: 'fill',
-      source: tempZoneLayerId,
-      paint: {
-        'fill-color': '#ff0000',
-        'fill-opacity': 0.3
-      }
-    });
+  if (!features.length) {
+    return;
   }
+
+  const road = features[0];
+  selectedRoad = road;
+
+  const roadName = road.properties.name || 'Rua sem nome';
+
+  // Remove destaque anterior
+  if (map.getLayer('selected-road')) {
+    map.removeLayer('selected-road');
+    map.removeSource('selected-road');
+  }
+
+  // Adiciona destaque da rua
+  map.addSource('selected-road', {
+    type: 'geojson',
+    data: {
+      type: 'Feature',
+      geometry: road.geometry
+    }
+  });
+
+  map.addLayer({
+    id: 'selected-road',
+    type: 'line',
+    source: 'selected-road',
+    paint: {
+      'line-color': '#ff0000',
+      'line-width': 6
+    }
+  });
+
+  console.log('Rua selecionada:', roadName);
 });
 
 const zoneLimits = {
@@ -240,6 +244,8 @@ if (distance < 200 && !canPass) {
     maxWeight: 24000
   }
 };
+
+let selectedRoad = null;
 
 // veículo ativo 
 let currentVehicle = vehicles.caminhao_3_4;
