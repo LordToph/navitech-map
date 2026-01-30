@@ -100,18 +100,20 @@ let tempZoneLayerId = 'temp-zone';
 
 map.on('click', (e) => {
 
-  const features = map.queryRenderedFeatures(e.point, {
-    layers: ['road-simple', 'road']
-  });
+  const features = map.queryRenderedFeatures(e.point);
 
-  if (!features.length) {
+  const roadFeature = features.find(f =>
+    f.geometry.type === 'LineString' &&
+    f.layer.type === 'line'
+  );
+
+  if (!roadFeature) {
     return;
   }
 
-  const road = features[0];
-  selectedRoad = road;
+  selectedRoad = roadFeature;
 
-  const roadName = road.properties.name || 'Rua sem nome';
+  const roadName = roadFeature.properties.name || 'Via sem nome';
 
   // Remove destaque anterior
   if (map.getLayer('selected-road')) {
@@ -124,7 +126,7 @@ map.on('click', (e) => {
     type: 'geojson',
     data: {
       type: 'Feature',
-      geometry: road.geometry
+      geometry: roadFeature.geometry
     }
   });
 
@@ -138,7 +140,7 @@ map.on('click', (e) => {
     }
   });
 
-  console.log('Rua selecionada:', roadName);
+  console.log('Via selecionada:', roadName);
 });
 
 const zoneLimits = {
