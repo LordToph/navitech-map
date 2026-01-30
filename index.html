@@ -56,6 +56,8 @@
 </div>
 
   <script>
+let blockStart = null;
+
     mapboxgl.accessToken = 'pk.eyJ1IjoibG9yZHRvcGgiLCJhIjoiY21rdmk0Zzh0MDZ4bTNjb2FlYjNucjV4NSJ9.IrJ9nEUX97lUvdPP0OHzAQ';
 
     const map = new mapboxgl.Map({
@@ -100,47 +102,49 @@ let tempZoneLayerId = 'temp-zone';
 
 map.on('click', (e) => {
 
-  const features = map.queryRenderedFeatures(e.point);
+  // Primeiro clique
+  if (!blockStart) {
+    blockStart = e.lngLat;
 
-  const roadFeature = features.find(f =>
-    f.geometry.type === 'LineString' &&
-    f.layer.type === 'line'
-  );
+    new mapboxgl.Marker({ color: 'orange' })
+      .setLngLat(blockStart)
+      .addTo(map);
 
-  if (!roadFeature) {
+    alert('Agora clique no final do trecho da rua.');
     return;
   }
 
-  selectedRoad = roadFeature;
+  // Segundo clique
+  const blockEnd = e.lngLat;
 
-  const roadName = roadFeature.properties.name || 'Via sem nome';
-
-  // Remove destaque anterior
-  if (map.getLayer('selected-road')) {
-    map.removeLayer('selected-road');
-    map.removeSource('selected-road');
-  }
-
-  // Adiciona destaque da rua
-  map.addSource('selected-road', {
+  map.addSource('blocked-segment', {
     type: 'geojson',
     data: {
       type: 'Feature',
-      geometry: roadFeature.geometry
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [blockStart.lng, blockStart.lat],
+          [blockEnd.lng, blockEnd.lat]
+        ]
+      }
     }
   });
 
   map.addLayer({
-    id: 'selected-road',
+    id: 'blocked-segment-layer',
     type: 'line',
-    source: 'selected-road',
+    source: 'blocked-segment',
     paint: {
       'line-color': '#ff0000',
       'line-width': 6
     }
   });
 
-  console.log('Via selecionada:', roadName);
+  alert('Trecho bloqueado com sucesso.');
+
+  // Reset
+  blockStart = null;
 });
 
 const zoneLimits = {
