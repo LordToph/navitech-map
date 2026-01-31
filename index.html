@@ -97,6 +97,9 @@ function distanceBetweenPoints(lat1, lon1, lat2, lon2) {
 
 map.on('load', () => {
 
+  // ===============================
+  // ZONA RESTRITA (POLÍGONO)
+  // ===============================
   map.addSource('restricted-zone', {
     type: 'geojson',
     data: {
@@ -123,7 +126,8 @@ map.on('load', () => {
       'fill-opacity': 0.4
     }
   });
-// ===============================
+
+  // ===============================
   // CLIQUE NA RUA (SELEÇÃO)
   // ===============================
   map.on('click', (e) => {
