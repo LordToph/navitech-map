@@ -74,25 +74,48 @@ map.setPaintProperty('road-simple', 'line-color', [
   '#888888'
 ]);
 
-   map.on('load', () => {
+ map.on('load', () => {
 
-  // Zona restrita
-  map.addSource('restricted-zone', {
-    type: 'geojson',
-    data: {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [-44.0233, -19.9795],
-          [-44.0225, -19.9795],
-          [-44.0225, -19.9789],
-          [-44.0233, -19.9789],
-          [-44.0233, -19.9795]
-        ]]
-      }
+  // Estilo da seleção de rua (Waze-like)
+  map.setPaintProperty('road-simple', 'line-color', [
+    'case',
+    ['boolean', ['feature-state', 'selected'], false],
+    '#ff0000',
+    '#888888'
+  ]);
+
+  // Clique para selecionar trecho da rua
+  map.on('click', (e) => {
+
+    const features = map.queryRenderedFeatures(e.point, {
+      layers: ['road-simple']
+    });
+
+    if (!features.length) {
+      alert('Clique diretamente sobre uma rua');
+      return;
     }
+
+    const road = features[0];
+
+    // Limpa seleção anterior
+    if (selectedRoadId !== null) {
+      map.setFeatureState(
+        { source: road.source, id: selectedRoadId },
+        { selected: false }
+      );
+    }
+
+    selectedRoadId = road.id;
+
+    // Marca trecho selecionado
+    map.setFeatureState(
+      { source: road.source, id: selectedRoadId },
+      { selected: true }
+    );
   });
+
+});
 
   map.addLayer({
     id: 'restricted-zone-layer',
@@ -133,27 +156,6 @@ map.on('click', (e) => {
     { selected: true }
   );
 
-});
-
-let drawingZone = [];
-let tempZoneLayerId = 'temp-zone';
-
-
-
-  map.addLayer({
-    id: 'blocked-segment-layer',
-    type: 'line',
-    source: 'blocked-segment',
-    paint: {
-      'line-color': '#ff0000',
-      'line-width': 6
-    }
-  });
-
-  alert('Trecho bloqueado com sucesso.');
-
-  // Reset
-  blockStart = null;
 });
 
 const zoneLimits = {
@@ -260,7 +262,6 @@ if (distance < 200 && !canPass) {
   }
 };
 
-let selectedRoad = null;
 
 // veículo ativo 
 let currentVehicle = vehicles.caminhao_3_4;
