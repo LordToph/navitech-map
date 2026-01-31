@@ -123,6 +123,57 @@ map.on('load', () => {
       'fill-opacity': 0.4
     }
   });
+// ===============================
+  // CLIQUE NA RUA (SELEÇÃO)
+  // ===============================
+  map.on('click', (e) => {
+
+    const features = map.queryRenderedFeatures(e.point);
+
+    const roadFeature = features.find(f =>
+      f.geometry &&
+      f.geometry.type === 'LineString' &&
+      f.layer.type === 'line'
+    );
+
+    if (!roadFeature) {
+      console.log('Nenhuma rua clicada');
+      return;
+    }
+
+    selectedRoad = roadFeature;
+
+    // Remove seleção anterior
+    if (map.getLayer('selected-road')) {
+      map.removeLayer('selected-road');
+      map.removeSource('selected-road');
+    }
+
+    // Cria fonte da rua selecionada
+    map.addSource('selected-road', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: roadFeature.geometry
+      }
+    });
+
+    // Desenha a rua em vermelho
+    map.addLayer({
+      id: 'selected-road',
+      type: 'line',
+      source: 'selected-road',
+      paint: {
+        'line-color': '#ff0000',
+        'line-width': 6
+      }
+    });
+
+    const roadName = roadFeature.properties?.name || 'Via sem nome';
+    console.log('Rua selecionada:', roadName);
+  });
+
+});
 
   const vehicleMarker = new mapboxgl.Marker({ color: '#1E90FF' });
 
