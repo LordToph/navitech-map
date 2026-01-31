@@ -56,7 +56,7 @@
 </div>
 
   <script>
-let selectedRoadId = null;
+let blockStart = null;
 
     mapboxgl.accessToken = 'pk.eyJ1IjoibG9yZHRvcGgiLCJhIjoiY21rdmk0Zzh0MDZ4bTNjb2FlYjNucjV4NSJ9.IrJ9nEUX97lUvdPP0OHzAQ';
 
@@ -67,55 +67,25 @@ let selectedRoadId = null;
       zoom: 14
     });
 
-map.setPaintProperty('road-simple', 'line-color', [
-  'case',
-  ['boolean', ['feature-state', 'selected'], false],
-  '#ff0000',
-  '#888888'
-]);
+   map.on('load', () => {
 
- map.on('load', () => {
-
-  // Estilo da seleção de rua (Waze-like)
-  map.setPaintProperty('road-simple', 'line-color', [
-    'case',
-    ['boolean', ['feature-state', 'selected'], false],
-    '#ff0000',
-    '#888888'
-  ]);
-
-  // Clique para selecionar trecho da rua
-  map.on('click', (e) => {
-
-    const features = map.queryRenderedFeatures(e.point, {
-      layers: ['road-simple']
-    });
-
-    if (!features.length) {
-      alert('Clique diretamente sobre uma rua');
-      return;
+  // Zona restrita
+  map.addSource('restricted-zone', {
+    type: 'geojson',
+    data: {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[
+          [-44.0233, -19.9795],
+          [-44.0225, -19.9795],
+          [-44.0225, -19.9789],
+          [-44.0233, -19.9789],
+          [-44.0233, -19.9795]
+        ]]
+      }
     }
-
-    const road = features[0];
-
-    // Limpa seleção anterior
-    if (selectedRoadId !== null) {
-      map.setFeatureState(
-        { source: road.source, id: selectedRoadId },
-        { selected: false }
-      );
-    }
-
-    selectedRoadId = road.id;
-
-    // Marca trecho selecionado
-    map.setFeatureState(
-      { source: road.source, id: selectedRoadId },
-      { selected: true }
-    );
   });
-
-});
 
   map.addLayer({
     id: 'restricted-zone-layer',
@@ -127,35 +97,52 @@ map.setPaintProperty('road-simple', 'line-color', [
     }
   });
 
+let drawingZone = [];
+let tempZoneLayerId = 'temp-zone';
+
 map.on('click', (e) => {
 
-  const features = map.queryRenderedFeatures(e.point, {
-    layers: ['road-simple'] // camada de ruas
-  });
+  const features = map.queryRenderedFeatures(e.point);
 
-  if (!features.length) {
-    alert('Clique diretamente sobre uma rua');
+  const roadFeature = features.find(f =>
+    f.geometry.type === 'LineString' &&
+    f.layer.type === 'line'
+  );
+
+  if (!roadFeature) {
     return;
   }
 
-  const road = features[0];
+  selectedRoad = roadFeature;
 
-  // Limpa seleção anterior
-  if (selectedRoadId) {
-    map.setFeatureState(
-      { source: road.source, id: selectedRoadId },
-      { selected: false }
-    );
+  const roadName = roadFeature.properties.name || 'Via sem nome';
+
+  // Remove destaque anterior
+  if (map.getLayer('selected-road')) {
+    map.removeLayer('selected-road');
+    map.removeSource('selected-road');
   }
 
-  selectedRoadId = road.id;
+  // Adiciona destaque da rua
+  map.addSource('selected-road', {
+    type: 'geojson',
+    data: {
+      type: 'Feature',
+      geometry: roadFeature.geometry
+    }
+  });
 
-  // Marca trecho selecionado
-  map.setFeatureState(
-    { source: road.source, id: selectedRoadId },
-    { selected: true }
-  );
+  map.addLayer({
+    id: 'selected-road',
+    type: 'line',
+    source: 'selected-road',
+    paint: {
+      'line-color': '#ff0000',
+      'line-width': 6
+    }
+  });
 
+  console.log('Via selecionada:', roadName);
 });
 
 const zoneLimits = {
@@ -262,6 +249,7 @@ if (distance < 200 && !canPass) {
   }
 };
 
+let selectedRoad = null;
 
 // veículo ativo 
 let currentVehicle = vehicles.caminhao_3_4;
