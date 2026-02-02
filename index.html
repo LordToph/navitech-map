@@ -97,17 +97,33 @@ function detectarRua(e) {
   const features = map.queryRenderedFeatures(e.point)
     .filter(f => f.layer.id.startsWith('road-') && !f.layer.id.includes('label'));
 
-  if (!features.length) {
-    console.log('Long press fora de rua');
-    return;
+  if (!features.length) return;
+
+  // fecha popup anterior
+  if (activePopup) {
+    activePopup.remove();
   }
 
-  const rua = features[0];
-
-  new mapboxgl.Popup()
+  activePopup = new mapboxgl.Popup()
     .setLngLat(e.lngLat)
-    .setHTML(`<b>Rua detectada</b><br>${rua.layer.id}`)
+    .setHTML(`<b>Rua selecionada</b>`)
     .addTo(map);
+}
+
+function distanciaEmMetros(coord1, coord2) {
+  const R = 6371000;
+  const toRad = deg => deg * Math.PI / 180;
+
+  const dLat = toRad(coord2[1] - coord1[1]);
+  const dLng = toRad(coord2[0] - coord1[0]);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(coord1[1])) *
+    Math.cos(toRad(coord2[1])) *
+    Math.sin(dLng / 2) ** 2;
+
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
 /* ================= MAP LOAD ================= */
@@ -196,6 +212,33 @@ map.on('load', () => {
 
 });
 
+map.on('moveend', () => {
+  if (!userLocation || !lastCenter) return;
+
+  const center = map.getCenter();
+  const atual = [center.lng, center.lat];
+
+  const distancia = distanciaEmMetros(lastCenter, atual);
+
+  if (distancia > 200) {
+    // usuário se afastou bastante
+    // NÃO RECENTRALIZA automaticamente
+    console.log('Usuário longe da posição inicial');
+  }
+});
+map.addControl(
+  new mapboxgl.GeolocateControl({
+    positionOptions: {
+      enableHighAccuracy: true
+    },
+    trackUserLocation: false,
+    showUserHeading: true
+  }),
+  'bottom-right'
+);
+
+let userLocation = null;
+let lastCenter = null;
 let pressTimer = null;
 let pressDuration = 600; // tempo em ms para considerar long press
 let startPoint = null;
@@ -233,6 +276,11 @@ map.on('touchstart', (e) => {
 
 map.on('touchend', () => {
   clearTimeout(pressTimer);
+});
+
+navigator.geolocation.getCurrentPosition((pos) => {
+  userLocation = [pos.coords.longitude, pos.coords.latitude];
+  lastCenter = userLocation;
 });
 
   const vehicleMarker = new mapboxgl.Marker({ color: '#1E90FF' });
