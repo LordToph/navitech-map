@@ -93,6 +93,34 @@ function distanceBetweenPoints(lat1, lon1, lat2, lon2) {
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
+function detectarRua(e) {
+  const features = map.queryRenderedFeatures(e.point, {
+    layers: [
+      'road-simple',
+      'road-primary',
+      'road-secondary',
+      'road-street',
+      'road-trunk',
+      'road-motorway'
+    ]
+  });
+
+  if (!features.length) {
+    console.log('Long press fora de uma rua');
+    return;
+  }
+
+  const rua = features[0];
+
+  console.log('Rua detectada:', rua);
+
+  // EXEMPLO DE AÇÃO
+  new mapboxgl.Popup()
+    .setLngLat(e.lngLat)
+    .setHTML(`<b>Rua selecionada</b>`)
+    .addTo(map);
+}
+
 /* ================= MAP LOAD ================= */
 
 map.on('load', () => {
@@ -177,6 +205,45 @@ map.on('load', () => {
     console.log('Rua selecionada:', roadName);
   });
 
+});
+
+let pressTimer = null;
+let pressDuration = 600; // tempo em ms para considerar long press
+let startPoint = null;
+
+// MOUSE
+map.on('mousedown', (e) => {
+  startPoint = e.point;
+
+  pressTimer = setTimeout(() => {
+    detectarRua(e);
+  }, pressDuration);
+});
+
+map.on('mouseup', () => {
+  clearTimeout(pressTimer);
+});
+
+map.on('mousemove', (e) => {
+  if (!startPoint) return;
+
+  // cancela se o usuário arrastar
+  if (Math.abs(e.point.x - startPoint.x) > 5 || Math.abs(e.point.y - startPoint.y) > 5) {
+    clearTimeout(pressTimer);
+  }
+});
+
+// TOUCH (celular)
+map.on('touchstart', (e) => {
+  startPoint = e.point;
+
+  pressTimer = setTimeout(() => {
+    detectarRua(e);
+  }, pressDuration);
+});
+
+map.on('touchend', () => {
+  clearTimeout(pressTimer);
 });
 
   const vehicleMarker = new mapboxgl.Marker({ color: '#1E90FF' });
