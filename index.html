@@ -94,30 +94,19 @@ function distanceBetweenPoints(lat1, lon1, lat2, lon2) {
 }
 
 function detectarRua(e) {
-  const features = map.queryRenderedFeatures(e.point, {
-    layers: [
-      'road-simple',
-      'road-primary',
-      'road-secondary',
-      'road-street',
-      'road-trunk',
-      'road-motorway'
-    ]
-  });
+  const features = map.queryRenderedFeatures(e.point)
+    .filter(f => f.layer.id.startsWith('road-') && !f.layer.id.includes('label'));
 
   if (!features.length) {
-    console.log('Long press fora de uma rua');
+    console.log('Long press fora de rua');
     return;
   }
 
   const rua = features[0];
 
-  console.log('Rua detectada:', rua);
-
-  // EXEMPLO DE AÇÃO
   new mapboxgl.Popup()
     .setLngLat(e.lngLat)
-    .setHTML(`<b>Rua selecionada</b>`)
+    .setHTML(`<b>Rua detectada</b><br>${rua.layer.id}`)
     .addTo(map);
 }
 
