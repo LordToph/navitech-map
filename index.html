@@ -237,6 +237,7 @@ map.addControl(
   'bottom-right'
 );
 
+let activePopup = null
 let userLocation = null;
 let lastCenter = null;
 let pressTimer = null;
@@ -285,9 +286,13 @@ navigator.geolocation.getCurrentPosition((pos) => {
 
   const vehicleMarker = new mapboxgl.Marker({ color: '#1E90FF' });
 
-  navigator.geolocation.watchPosition(pos => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
+  navigator.geolocation.watchPosition((pos) => {
+  userLocation = [pos.coords.longitude, pos.coords.latitude];
+
+  if (!lastCenter) {
+    lastCenter = userLocation;
+  }
+});
 
     vehicleMarker.setLngLat([lng, lat]).addTo(map);
 
